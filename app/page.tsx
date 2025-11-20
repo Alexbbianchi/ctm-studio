@@ -4,8 +4,9 @@ import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, Download } from 'lucide-react'
 import { ThemeModal } from "@/components/theme-modal"
+import { ExportTailwindModal } from "@/components/export-tailwind-modal"
 import { useDebounce } from "@/hooks/use-debounce"
 import { VariableResolution } from "@/components/variable-resolution"
 import { SettingsMenu } from "@/components/settings-menu"
@@ -20,6 +21,7 @@ export default function Home() {
   const [temas, setTemas] = useState<Theme[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
   const [editingTheme, setEditingTheme] = useState<Theme | null>(null)
   const { t } = useLocale()
 
@@ -251,10 +253,16 @@ export default function Home() {
 
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">{t.registeredThemes}</h2>
-          <Button onClick={handleNewTheme}>
-            <Plus className="w-4 h-4 mr-2" />
-            {t.newTheme}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setIsExportModalOpen(true)} variant="outline" disabled={temas.length === 0}>
+              <Download className="w-4 h-4 mr-2" />
+              {t.exportToTailwind}
+            </Button>
+            <Button onClick={handleNewTheme}>
+              <Plus className="w-4 h-4 mr-2" />
+              {t.newTheme}
+            </Button>
+          </div>
         </div>
 
         {temas.length === 0 ? (
@@ -329,6 +337,12 @@ export default function Home() {
           onSave={handleSaveTheme}
           editingTheme={editingTheme}
           existingThemeNames={temas.map((t) => t.nome).filter((name) => name !== editingTheme?.nome)}
+        />
+
+        <ExportTailwindModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          themes={temas}
         />
       </div>
     </div>
