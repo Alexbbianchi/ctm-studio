@@ -71,7 +71,16 @@ export function ExportTailwindModal({ isOpen, onClose, themes }: ExportTailwindM
       // Reseta nome do arquivo
       setFileName("tailwind-themes")
       setMappingName("")
-    }
+      setError("")
+
+      return
+    } 
+
+    setFileName("tailwind-themes")
+    setSelectedThemes([])
+    setRootTheme("")
+    setMappingName("")
+    setError("")
   }, [isOpen, themes])
 
   const handleLoadDefault = () => {
@@ -252,14 +261,23 @@ export function ExportTailwindModal({ isOpen, onClose, themes }: ExportTailwindM
 
       // Fecha o modal
       onClose()
-      setMappingJson("")
     } catch (e) {
       setError(t.invalidJson || "JSON inválido")
     }
   }
 
+  const handleClose = () => {
+    // Limpa tudo ao fechar, exceto o JSON do mapeamento
+    setFileName("tailwind-themes")
+    setSelectedThemes([])
+    setRootTheme("")
+    setMappingName("")
+    setError("")
+    onClose()
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="w-5xl! sm:w-[90vw]! max-w-5xl! h-[95vh] max-h-[95vh] overflow-hidden flex flex-col p-4 sm:p-6">
         <DialogHeader className="shrink-0 pb-4">
           <DialogTitle className="text-lg sm:text-xl">{t.exportToTailwind || "Exportar para Tailwind"}</DialogTitle>
@@ -430,7 +448,7 @@ export function ExportTailwindModal({ isOpen, onClose, themes }: ExportTailwindM
           </div>
 
           <div className="flex flex-col sm:flex-row justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose} className="text-sm">
+            <Button type="button" variant="outline" onClick={handleClose} className="text-sm">
               {t.cancel}
             </Button>
             <Button type="button" onClick={handleExport} className="text-sm">
