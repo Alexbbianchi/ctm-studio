@@ -146,25 +146,51 @@ export default function Home() {
   const searchResults = useMemo(() => {
     if (!debouncedSearch.trim()) return null
 
-    // Normaliza a busca: adiciona -- se não tiver
-    let variable = debouncedSearch.trim()
-    if (!variable.startsWith("--")) {
-      variable = `--${variable}`
+    // Verifica se é busca parcial (com *) ou exata
+    const isPartialSearch = debouncedSearch.trim().startsWith("*")
+    
+    let searchTerm = debouncedSearch.trim()
+    let exactVariable = ""
+    
+    if (isPartialSearch) {
+      // Remove o * e normaliza para busca parcial
+      searchTerm = searchTerm.slice(1).toLowerCase()
+      if (searchTerm.startsWith("--")) {
+        searchTerm = searchTerm.slice(2)
+      }
+    } else {
+      // Busca exata: normaliza adicionando -- se necessário
+      exactVariable = searchTerm.startsWith("--") ? searchTerm : `--${searchTerm}`
     }
 
     const results: Array<{
       tema: string
+      variavel: string
       valor: string
       chain: string[] | null
       isDuplicate: boolean
     }> = []
 
     temas.forEach((tema) => {
-      const valor = tema.variaveis[variable]
+      let matchingVars: string[] = []
+      
+      if (isPartialSearch) {
+        // Busca parcial: todas as variáveis que contenham o termo
+        matchingVars = Object.keys(tema.variaveis).filter((varName) => {
+          const cleanVarName = varName.startsWith("--") ? varName.slice(2) : varName
+          return cleanVarName.toLowerCase().includes(searchTerm)
+        })
+      } else {
+        // Busca exata: apenas a variável específica
+        if (tema.variaveis[exactVariable]) {
+          matchingVars = [exactVariable]
+        }
+      }
 
-      if (!valor) {
+      if (matchingVars.length === 0) {
         results.push({
           tema: tema.nome,
+          variavel: isPartialSearch ? `*${searchTerm}` : exactVariable,
           valor: "—",
           chain: null,
           isDuplicate: false,
@@ -172,29 +198,36 @@ export default function Home() {
         return
       }
 
-      if (valor.includes(" | ")) {
-        const valores = valor.split(" | ")
-        valores.forEach((v, index) => {
-          const chain = resolveVariable(v, temas, tema.nome)
-          results.push({
-            tema: `${tema.nome} (${index + 1})`,
-            valor: v,
-            chain,
-            isDuplicate: true,
+      // Para cada variável que corresponde à busca
+      matchingVars.forEach((variable) => {
+        const valor = tema.variaveis[variable]
+
+        if (valor.includes(" | ")) {
+          const valores = valor.split(" | ")
+          valores.forEach((v, index) => {
+            const chain = resolveVariable(v, temas, tema.nome)
+            results.push({
+              tema: `${tema.nome} (${index + 1})`,
+              variavel: variable,
+              valor: v,
+              chain,
+              isDuplicate: true,
+            })
           })
-        })
-      } else {
-        const chain = resolveVariable(valor, temas, tema.nome)
-        results.push({
-          tema: tema.nome,
-          valor,
-          chain,
-          isDuplicate: false,
-        })
-      }
+        } else {
+          const chain = resolveVariable(valor, temas, tema.nome)
+          results.push({
+            tema: tema.nome,
+            variavel: variable,
+            valor,
+            chain,
+            isDuplicate: false,
+          })
+        }
+      })
     })
 
-    return { variable, results }
+    return { searchTerm: isPartialSearch ? searchTerm : exactVariable, results, isPartialSearch }
   }, [debouncedSearch, temas])
 
   return (
@@ -219,12 +252,17 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Input
-              placeholder={t.searchInputPlaceholder}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="mb-4"
-            />
+            <div className="mb-2">
+              <Input
+                placeholder={t.searchInputPlaceholder}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="mb-2"
+              />
+              <p className="text-xs text-muted-foreground">
+                💡 {t.searchHelp}
+              </p>
+            </div>
 
             {searchResults && (
               <div className="border rounded-lg overflow-hidden">
@@ -232,18 +270,54 @@ export default function Home() {
                   <thead className="bg-muted">
                     <tr>
                       <th className="text-left py-3 px-4 font-semibold">{t.theme}</th>
-                      <th className="text-left py-3 px-4 font-semibold">{t.value} {searchResults.variable}</th>
+                      <th className="text-left py-3 px-4 font-semibold">Variável</th>
+                      <th className="text-left py-3 px-4 font-semibold">Valor</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {searchResults.results.map((result, index) => (
-                      <tr key={index} className={`border-t ${result.isDuplicate ? "bg-amber-50 dark:bg-amber-950/20" : ""}`}>
-                        <td className="py-3 px-4 font-medium">{result.tema}</td>
-                        <td className="py-3 px-4">
-                          <VariableResolution valor={result.valor} chain={result.chain} />
-                        </td>
-                      </tr>
-                    ))}
+                    {searchResults.results.map((result, index) => {
+                      // Destaca o termo pesquisado na variável apenas em busca parcial
+                      const highlightedVariable = () => {
+                        const varName = result.variavel
+                        
+                        // Se não for busca parcial, não destaca
+                        if (!searchResults.isPartialSearch) {
+                          return <code className="text-sm text-muted-foreground">{varName}</code>
+                        }
+                        
+                        const searchTerm = searchResults.searchTerm.toLowerCase()
+                        const lowerVarName = varName.toLowerCase()
+                        const startIndex = lowerVarName.indexOf(searchTerm)
+                        
+                        if (startIndex === -1) {
+                          return <code className="text-sm text-muted-foreground">{varName}</code>
+                        }
+                        
+                        const before = varName.slice(0, startIndex)
+                        const match = varName.slice(startIndex, startIndex + searchTerm.length)
+                        const after = varName.slice(startIndex + searchTerm.length)
+                        
+                        return (
+                          <code className="text-sm text-muted-foreground">
+                            {before}
+                            <span className="bg-yellow-300 dark:bg-yellow-600 text-foreground font-semibold">{match}</span>
+                            {after}
+                          </code>
+                        )
+                      }
+                      
+                      return (
+                        <tr key={index} className={`border-t ${result.isDuplicate ? "bg-amber-50 dark:bg-amber-950/20" : ""}`}>
+                          <td className="py-3 px-4 font-medium">{result.tema}</td>
+                          <td className="py-3 px-4">
+                            {highlightedVariable()}
+                          </td>
+                          <td className="py-3 px-4">
+                            <VariableResolution valor={result.valor} chain={result.chain} />
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>

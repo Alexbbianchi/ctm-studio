@@ -50,13 +50,19 @@
 - ✏️ Editar temas existentes
 - 🗑️ Excluir temas com confirmação
 - 📤 Importar temas via JSON ou CSS
+- 📥 Exportar temas para formato Tailwind CSS
+- 💾 Salvar mapeamentos de exportação
 - 👁️ Preview visual de cores
 
 ### 🔍 Busca Avançada
 ```
---color-primary → #3b82f6
---bg → var(--neutral-900) → #171717
+Busca Exata:    --color-primary → #3b82f6
+Busca Parcial:  *color → todas com "color"
+Resolução:      --bg → var(--neutral-900) → #171717
 ```
+- **Busca exata**: Digite o nome da variável (com ou sem `--`)
+- **Busca parcial**: Use `*` no início (ex: `*color`)
+- Destaque visual do termo encontrado (amarelo)
 - Busca em tempo real com debounce
 - Resolução completa de cadeia de variáveis
 - Detecção de valores duplicados
@@ -184,10 +190,23 @@ pnpm start
 
 ### 2️⃣ Buscar Variável
 
-Digite na barra de busca:
+**Busca Exata** (sem asterisco):
 ```
 --color-primary
+color-primary
 ```
+Retorna apenas a variável `--color-primary` em todos os temas.
+
+**Busca Parcial** (com asterisco `*` no início):
+```
+*color
+*--color
+```
+Retorna todas as variáveis que contenham "color":
+- `--color-primary`
+- `--color-secondary`
+- `--background-color`
+- `--text-color`
 
 Veja o valor em **todos os temas** + **cadeia de resolução completa**:
 ```
@@ -195,7 +214,50 @@ Tema Escuro → var(--blue-500) → #3b82f6
 Tema Claro  → var(--blue-600) → #2563eb
 ```
 
-### 3️⃣ Editar/Excluir
+### 3️⃣ Exportar para Tailwind CSS
+
+Exporte seus temas para o formato Tailwind CSS:
+
+1. Clique em **"Exportar para Tailwind"**
+2. Configure o mapeamento de variáveis:
+   ```json
+   {
+     "--color-primary": "--primary",
+     "--background": "--bg",
+     "--text": "--foreground"
+   }
+   ```
+3. Selecione os temas que deseja exportar
+4. Escolha o tema padrão (`:root`)
+5. Defina o nome do arquivo
+6. Clique em **"Exportar CSS"**
+
+**Resultado:**
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: 59 130 246;
+    --bg: 255 255 255;
+    --foreground: 0 0 0;
+  }
+
+  .dark {
+    --primary: 147 197 253;
+    --bg: 23 23 23;
+    --foreground: 255 255 255;
+  }
+}
+```
+
+**Mapeamentos Salvos:**
+- Salve mapeamentos frequentes para reutilização
+- Carregue mapeamento padrão com um clique
+
+### 4️⃣ Editar/Excluir
 
 - ✏️ **Editar**: Clique no botão "Editar" no card do tema
 - 🗑️ **Excluir**: Clique em "Excluir" e confirme
@@ -241,10 +303,27 @@ ctm-studio/
 
 ### 🔍 Sistema de Busca
 
+**Busca Exata**
+```typescript
+// Usuário digita: "color-primary" ou "--color-primary"
+// Sistema busca: exatamente "--color-primary"
+// Retorna: apenas essa variável
+```
+
+**Busca Parcial (com asterisco)**
+```typescript
+// Usuário digita: "*color"
+// Sistema busca: todas variáveis que contenham "color"
+// Retorna: --color-primary, --background-color, --text-color, etc.
+```
+
 **Normalização Automática**
 ```typescript
-// Usuário digita: "color-primary"
-// Sistema busca: "--color-primary"
+// Busca exata: adiciona -- se necessário
+"color-primary" → "--color-primary"
+
+// Busca parcial: remove -- para comparação
+"*--color" → busca por "color"
 ```
 
 **Resolução de Variáveis**
@@ -255,6 +334,13 @@ ctm-studio/
 
 // Saída visual
 var(--neutral-900) → #171717
+```
+
+**Destaque Visual**
+```typescript
+// Busca parcial com *color
+--color-primary  → --[color]-primary (amarelo)
+--text-color     → --text-[color] (amarelo)
 ```
 
 **Valores Duplicados**
