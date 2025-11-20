@@ -71,6 +71,8 @@ export const translations = {
     mappingNameRequired: 'Digite um nome para o mapeamento',
     selectAtLeastOneTheme: 'Selecione pelo menos um tema para exportar',
     fileNameRequired: 'Digite um nome para o arquivo',
+    clickToCopy: 'Clique para copiar',
+    copiedToClipboard: 'Copiado para a área de transferência!',
   },
   en: {
     title: 'CSS Theme Manager',
@@ -142,6 +144,8 @@ export const translations = {
     mappingNameRequired: 'Enter a name for the mapping',
     selectAtLeastOneTheme: 'Select at least one theme to export',
     fileNameRequired: 'Enter a name for the file',
+    clickToCopy: 'Click to copy',
+    copiedToClipboard: 'Copied to clipboard!',
   },
   es: {
     title: 'Gestor de Temas CSS',
@@ -213,5 +217,7 @@ export const translations = {
     mappingNameRequired: 'Ingrese un nombre para el mapeo',
     selectAtLeastOneTheme: 'Seleccione al menos un tema para exportar',
     fileNameRequired: 'Ingrese un nombre para el archivo',
+    clickToCopy: 'Haga clic para copiar',
+    copiedToClipboard: '¡Copiado al portapapeles!',
   },
 } as const
