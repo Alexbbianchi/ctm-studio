@@ -1,118 +1,214 @@
-# 🎨 CTM Studio - CSS Theme Manager
+# CTM Studio
 
-<div align="center">
+Gerenciador de temas CSS com resolução inteligente de variáveis. Ferramenta desenvolvida para designers e desenvolvedores que trabalham com design systems e precisam manter consistência em suas variáveis CSS.
 
-![Next.js](https://img.shields.io/badge/Next.js-16.0-black?style=for-the-badge&logo=next.js)
-![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1-38B2AC?style=for-the-badge&logo=tailwind-css)
+## Índice
 
-**Gerenciador profissional de temas CSS com resolução inteligente de variáveis**
+- [Sobre](#sobre)
+- [Principais Funcionalidades](#principais-funcionalidades)
+- [Tecnologias](#tecnologias)
+- [Instalação](#instalação)
+- [Como Usar](#como-usar)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Exemplos Práticos](#exemplos-práticos)
 
-[🇧🇷 Português](#português) • [🇺🇸 English](#english) • [🇪🇸 Español](#español)
+## Sobre
 
-</div>
+O CTM Studio resolve um problema comum no desenvolvimento front-end: gerenciar e buscar variáveis CSS em múltiplos temas. A aplicação oferece uma interface visual para cadastrar temas, buscar variáveis específicas e visualizar toda a cadeia de resolução quando uma variável referencia outra.
 
----
+**Diferenciais:**
 
-## 📋 Índice
+Busca em tempo real que encontra variáveis em todos os temas cadastrados, mostrando inclusive a cadeia completa de resolução quando há referências entre variáveis (ex: `var(--primary)` → `var(--blue-500)` → `#3b82f6`).
 
-- [Sobre o Projeto](#-sobre-o-projeto)
-- [Features Principais](#-features-principais)
-- [Stack Tecnológica](#-stack-tecnológica)
-- [Instalação](#-instalação)
-- [Como Usar](#-como-usar)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Funcionalidades Detalhadas](#-funcionalidades-detalhadas)
-- [Exemplos](#-exemplos)
+Sistema de importação flexível que aceita tanto JSON estruturado quanto CSS puro, facilitando a migração de projetos existentes.
 
----
+Detecção automática de problemas como referências circulares e valores duplicados, ajudando a manter a qualidade do código.
 
-## 🎯 Sobre o Projeto
 
-**CTM Studio** é uma aplicação web moderna para gerenciar temas CSS de forma visual e intuitiva. Ideal para designers, desenvolvedores e equipes que trabalham com design systems e precisam organizar, buscar e manter consistência em variáveis CSS.
+## Principais Funcionalidades
 
-### 💡 Por que usar?
+### Gestão de Temas
 
-- 🔍 **Busca Instantânea**: Encontre qualquer variável CSS em todos os temas
-- 🔗 **Resolução Inteligente**: Rastreie referências `var()` e detecte dependências circulares
-- 🌐 **Multilíngue**: Suporte para Português, Inglês e Espanhol
-- 🌓 **Dark/Light Mode**: Alternância perfeita entre temas claro e escuro
-- 📦 **Import/Export**: Importe temas via JSON ou CSS puro
-- 💾 **LocalStorage**: Persistência automática sem necessidade de backend
+Crie temas personalizados com variáveis CSS específicas para cada projeto. A edição é simples e permite adicionar, remover ou modificar variáveis a qualquer momento. Temas podem ser excluídos com segurança através de confirmação.
 
----
+### Busca de Variáveis
 
-## ✨ Features Principais
+O sistema de busca funciona em tempo real, mostrando como cada variável é definida em todos os temas cadastrados. Quando uma variável referencia outra usando `var()`, a cadeia completa de resolução é exibida visualmente.
 
-### 🎨 Gestão de Temas
-- ➕ Criar temas com variáveis CSS personalizadas
-- ✏️ Editar temas existentes
-- 🗑️ Excluir temas com confirmação
-- 📤 Importar temas via JSON ou CSS
-- 📥 Exportar temas para formato Tailwind CSS
-- 💾 Salvar mapeamentos de exportação
-- 👁️ Preview visual de cores
-
-### 🔍 Busca Avançada
+Exemplo de resolução:
 ```
-Busca Exata:    --color-primary → #3b82f6
-Busca Parcial:  *color → todas com "color"
-Resolução:      --bg → var(--neutral-900) → #171717
+Entrada: --bg
+Tema Escuro: var(--neutral-900) → #171717
+Tema Claro:  var(--gray-50) → #f9fafb
 ```
-- **Busca exata**: Digite o nome da variável (com ou sem `--`)
-- **Busca parcial**: Use `*` no início (ex: `*color`)
-- Destaque visual do termo encontrado (amarelo)
-- Busca em tempo real com debounce
-- Resolução completa de cadeia de variáveis
-- Detecção de valores duplicados
-- Identificação de referências circulares
 
-### 🌐 Internacionalização
-- 🇧🇷 Português (pt)
-- 🇺🇸 English (en)
-- 🇪🇸 Español (es)
+### Importação de Temas
 
-### 🎭 Temas Visuais
-- 🌙 Dark Mode
-- ☀️ Light Mode
-- 🔄 Alternância persistente
+Importe temas existentes de duas formas:
 
----
+**JSON estruturado:**
+```json
+{
+  "nome": "Meu Tema",
+  "variaveis": {
+    "--color-primary": "#3b82f6",
+    "--bg": "var(--neutral-900)"
+  }
+}
+```
 
-## 🛠️ Stack Tecnológica
+**CSS puro:**
+```css
+--color-primary: #3b82f6;
+--bg: var(--neutral-900);
+--text: #ffffff;
+```
 
-### Core
-- **[Next.js 16.0](https://nextjs.org/)** - Framework React com App Router
-- **[React 19.2](https://react.dev/)** - Biblioteca UI
-- **[TypeScript](https://www.typescriptlang.org/)** - Type Safety
+O parser é inteligente e remove automaticamente seletores CSS como `:root`, mantendo apenas as variáveis válidas.
 
-### UI & Styling
-- **[Tailwind CSS 4.1](https://tailwindcss.com/)** - Utility-first CSS
-- **[Radix UI](https://www.radix-ui.com/)** - Componentes acessíveis headless
-- **[shadcn/ui](https://ui.shadcn.com/)** - Componentes reutilizáveis
-- **[Lucide React](https://lucide.dev/)** - Ícones
-- **[next-themes](https://github.com/pacocoursey/next-themes)** - Gestão de temas
+### Detecção de Problemas
 
-### Formulários & Validação
-- **[React Hook Form](https://react-hook-form.com/)** - Gestão de formulários performática
-- **[Zod](https://zod.dev/)** - Schema validation
+A aplicação identifica automaticamente:
 
-### Outros
-- **[Sonner](https://sonner.emilkowal.ski/)** - Toast notifications
-- **[class-variance-authority](https://cva.style/)** - Variantes de componentes
+**Referências Circulares:**
+```
+--a: var(--b)
+--b: var(--c)
+--c: var(--a)
+↓
+Resultado: [Referência circular detectada]
+```
 
----
+**Valores Duplicados:**
+Quando uma variável tem múltiplos valores separados por `|`, cada um é exibido separadamente com seu índice.
 
-## 📦 Instalação
+### Internacionalização
+
+Interface disponível em português, inglês e espanhol. A troca de idioma é instantânea e persiste entre sessões. Toda a aplicação, incluindo mensagens de erro e validações, é traduzida.
+
+### Temas Visuais
+
+Alterne entre modo claro e escuro conforme sua preferência. A escolha é salva automaticamente e aplicada em todas as sessões futuras.
+
+## Tecnologias
+
+**Frontend Framework**
+- Next.js 16.0 com App Router
+- React 19.2
+- TypeScript para type safety
+
+**Estilização e UI**
+- Tailwind CSS 4.1
+- Radix UI para componentes acessíveis
+- shadcn/ui para componentes reutilizáveis
+- Lucide React para ícones
+- next-themes para gestão de temas
+
+**Formulários**
+- React Hook Form para performance
+- Zod para validação de schemas
+
+**Utilitários**
+- Sonner para notificações toast
+- class-variance-authority para variantes de componentes
+
+## Instalação
 
 ### Pré-requisitos
-- Node.js 18+ 
+- Node.js 18 ou superior
 - pnpm (recomendado) ou npm
 
-### Passo a passo
+### Passos
 
-1. **Clone o repositório**
+**1. Clone o repositório**
+```bash
+git clone https://github.com/Alexbbianchi/ctm-studio.git
+cd ctm-studio
+```
+
+**2. Instale as dependências**
+```bash
+pnpm install
+```
+ou
+```bash
+npm install
+```
+
+**3. Execute em desenvolvimento**
+```bash
+pnpm dev
+```
+ou
+```bash
+npm run dev
+```
+
+**4. Acesse a aplicação**
+```
+http://localhost:3000
+```
+
+### Build para produção
+```bash
+pnpm build
+pnpm start
+```
+
+## Como Usar
+
+### Criar um Tema
+
+**Modo Manual**
+
+1. Clique em "Novo Tema"
+2. Digite o nome (ex: "Dark Theme")
+3. Adicione variáveis:
+   - Nome: `--color-primary`
+   - Valor: `#3b82f6`
+4. Clique em "Salvar"
+
+**Importar JSON**
+
+Cole um JSON no seguinte formato:
+```json
+{
+  "nome": "Meu Tema",
+  "variaveis": {
+    "--color-primary": "#ff8000",
+    "--bg": "#000000",
+    "--text": "var(--white)"
+  }
+}
+```
+
+**Importar CSS**
+
+Cole CSS puro:
+```css
+--color-primary: #ff8000;
+--bg: #000000;
+--text: var(--white);
+```
+
+### Buscar Variável
+
+Digite na barra de busca o nome da variável (com ou sem `--`):
+```
+--color-primary
+```
+
+Veja o valor em todos os temas com a cadeia de resolução completa:
+```
+Tema Escuro → var(--blue-500) → #3b82f6
+Tema Claro  → var(--blue-600) → #2563eb
+```
+
+### Editar ou Excluir Tema
+
+- **Editar**: Clique no botão "Editar" no card do tema
+- **Excluir**: Clique em "Excluir" e confirme a ação
+
 ```bash
 git clone https://github.com/Alexbbianchi/ctm-studio.git
 cd ctm-studio
@@ -262,145 +358,165 @@ Exporte seus temas para o formato Tailwind CSS:
 - ✏️ **Editar**: Clique no botão "Editar" no card do tema
 - 🗑️ **Excluir**: Clique em "Excluir" e confirme
 
----
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 ctm-studio/
 ├── app/
-│   ├── globals.css          # Estilos globais + CSS variables
-│   ├── layout.tsx           # Layout root com providers
-│   ├── loading.tsx          # Loading state
-│   └── page.tsx             # ⭐ Página principal
+│   ├── globals.css          # Estilos globais e variáveis CSS
+│   ├── layout.tsx           # Layout principal com providers
+│   ├── loading.tsx          # Estado de carregamento
+│   └── page.tsx             # Página principal da aplicação
 │
 ├── components/
-│   ├── ui/                  # Componentes shadcn/ui
+│   ├── ui/                  # Componentes base do shadcn/ui
 │   │   ├── button.tsx
 │   │   ├── card.tsx
 │   │   ├── input.tsx
 │   │   └── ...
 │   ├── settings-menu.tsx    # Menu de configurações (idioma/tema)
-│   ├── theme-modal.tsx      # Modal de criação/edição
-│   ├── theme-provider.tsx   # Provider next-themes
-│   └── variable-resolution.tsx  # Componente de resolução
+│   ├── theme-modal.tsx      # Modal de criação/edição de temas
+│   ├── theme-provider.tsx   # Provider do next-themes
+│   └── variable-resolution.tsx  # Componente de resolução de variáveis
 │
 ├── hooks/
-│   ├── use-debounce.ts      # Hook de debounce para busca
+│   ├── use-debounce.ts      # Hook para debounce na busca
 │   ├── use-locale.tsx       # Hook de internacionalização
-│   └── use-theme.tsx        # Hook de tema (dark/light)
+│   └── use-theme.tsx        # Hook de tema visual (dark/light)
 │
 ├── lib/
-│   ├── i18n.ts              # Traduções (pt, en, es)
-│   └── utils.ts             # Utilitários (cn, etc)
+│   ├── i18n.ts              # Sistema de traduções (pt, en, es)
+│   └── utils.ts             # Funções utilitárias
 │
 └── public/                  # Assets estáticos
 ```
 
----
 
-## 🔧 Funcionalidades Detalhadas
 
-### 🔍 Sistema de Busca
+## Exemplos Práticos
 
-**Busca Exata**
-```typescript
-// Usuário digita: "color-primary" ou "--color-primary"
-// Sistema busca: exatamente "--color-primary"
-// Retorna: apenas essa variável
-```
+### Design System Completo
 
-**Busca Parcial (com asterisco)**
-```typescript
-// Usuário digita: "*color"
-// Sistema busca: todas variáveis que contenham "color"
-// Retorna: --color-primary, --background-color, --text-color, etc.
-```
-
-**Normalização Automática**
-```typescript
-// Busca exata: adiciona -- se necessário
-"color-primary" → "--color-primary"
-
-// Busca parcial: remove -- para comparação
-"*--color" → busca por "color"
-```
-
-**Resolução de Variáveis**
-```typescript
-// Entrada
---bg: var(--neutral-900)
---neutral-900: #171717
-
-// Saída visual
-var(--neutral-900) → #171717
-```
-
-**Destaque Visual**
-```typescript
-// Busca parcial com *color
---color-primary  → --[color]-primary (amarelo)
---text-color     → --text-[color] (amarelo)
-```
-
-**Valores Duplicados**
-```typescript
-// Entrada
---shadow: 0px 2px 4px rgba(0,0,0,0.1) | 0px 4px 8px rgba(0,0,0,0.2)
-
-// Saída
-Tema (1): 0px 2px 4px rgba(0,0,0,0.1)
-Tema (2): 0px 4px 8px rgba(0,0,0,0.2)
-```
-
-### 📦 Sistema de Import
-
-**Suporte JSON**
 ```json
 {
-  "nome": "Play7 Theme",
+  "nome": "Design System 2024",
   "variaveis": {
-    "--color-primary": "#ff8000",
-    "--color-secondary": "var(--color-primary)"
+    "--color-primary": "#3b82f6",
+    "--color-secondary": "#10b981",
+    "--color-danger": "#ef4444",
+    "--spacing-xs": "4px",
+    "--spacing-sm": "8px",
+    "--spacing-md": "16px",
+    "--font-primary": "'Inter', sans-serif",
+    "--font-size-base": "16px",
+    "--shadow-sm": "0 1px 2px rgba(0,0,0,0.05)",
+    "--shadow-md": "0 4px 6px rgba(0,0,0,0.1)",
+    "--bg-primary": "var(--color-primary)",
+    "--text-primary": "var(--color-primary)"
   }
 }
 ```
 
-**Suporte CSS**
-```css
-:root {
-  --color-primary: #ff8000;
-  --color-secondary: var(--color-primary);
-}
-```
+### Tema com Referências
 
-**Parser Inteligente**
-- Detecta formato automaticamente
-- Remove `:root` e seletores
-- Valida nomes de variáveis (deve começar com `--`)
-- Remove duplicatas
-
-### 💾 Persistência
-
-**LocalStorage Structure**
 ```json
 {
-  "css-themes": [
-    {
-      "nome": "Tema Claro",
-      "variaveis": { ... }
-    }
-  ],
-  "locale": "pt",
-  "theme": "dark"
+  "nome": "Theme with References",
+  "variaveis": {
+    "--white": "#ffffff",
+    "--black": "#000000",
+    "--gray-900": "#171717",
+    "--bg": "var(--gray-900)",
+    "--text": "var(--white)",
+    "--link": "var(--color-primary)",
+    "--color-primary": "#3b82f6"
+  }
 }
 ```
+
+### Detecção de Referência Circular
+
+```json
+{
+  "nome": "Circular Test",
+  "variaveis": {
+    "--a": "var(--b)",
+    "--b": "var(--c)",
+    "--c": "var(--a)"
+  }
+}
+```
+
+Output esperado:
+```
+var(--b) → var(--c) → [Referência circular: --a]
+```
+
+### Sistema de Busca
+
+**Busca Exata:**
+```
+Input: --color-primary
+Result: Somente a variável --color-primary em todos os temas
+```
+
+**Busca Parcial:**
+```
+Input: *color
+Result: Todas as variáveis contendo "color":
+  - --color-primary
+  - --color-secondary
+  - --background-color
+  - --text-color
+```
+
+## Adicionar Novo Idioma
+
+Edite `lib/i18n.ts`:
+
+```typescript
+export type Locale = 'pt' | 'en' | 'es' | 'fr'
+
+export const translations = {
+  // ... idiomas existentes
+  fr: {
+    title: 'Gestionnaire de Thèmes CSS',
+    subtitle: 'Enregistrez et gérez vos thèmes CSS facilement',
+    // ... restante das traduções
+  }
+}
+```
+
+## Contribuindo
+
+Contribuições são bem-vindas. Para contribuir:
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -m 'feat: adiciona nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
+5. Abra um Pull Request
+
+## Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
+
+## Autor
+
+Alex Bianchi
+- GitHub: [@Alexbbianchi](https://github.com/Alexbbianchi)
+
+## Agradecimentos
+
+- shadcn/ui pela biblioteca de componentes
+- Radix UI pelos primitivos acessíveis
+- Vercel pelo hosting
 
 ---
 
-## 🎨 Exemplos
+Feito com Next.js e TypeScript
 
-### Design System Completo
 
 ```json
 {
@@ -429,151 +545,23 @@ Tema (2): 0px 4px 8px rgba(0,0,0,0.2)
     "--text-primary": "var(--color-primary)"
   }
 }
-```
-
-### Tema com Referências Cruzadas
-
-```json
-{
-  "nome": "Theme with References",
-  "variaveis": {
-    "--white": "#ffffff",
-    "--black": "#000000",
-    "--gray-900": "#171717",
-    
-    "--bg": "var(--gray-900)",
-    "--text": "var(--white)",
-    "--link": "var(--color-primary)",
-    "--color-primary": "#3b82f6"
-  }
-}
-```
-
-### Detecção de Circular Reference
-
-```json
-{
-  "nome": "Circular Test",
-  "variaveis": {
-    "--a": "var(--b)",
-    "--b": "var(--c)",
-    "--c": "var(--a)"  // ⚠️ Circular!
-  }
-}
-```
-
-**Output:**
-```
-var(--b) → var(--c) → [Referência circular: --a]
-```
 
 ---
 
-## 🌐 Internacionalização
-
-**Trocar idioma:**
-1. Clique no ícone ⚙️ (Settings)
-2. Selecione o idioma desejado
-3. Interface atualiza instantaneamente
-
-**Idiomas suportados:**
-- 🇧🇷 Português (Padrão)
-- 🇺🇸 English
-- 🇪🇸 Español
-
-**Adicionar novo idioma:**
-
-Edite `lib/i18n.ts`:
-```typescript
-export type Locale = 'pt' | 'en' | 'es' | 'fr' // Adicione 'fr'
-
-export const translations = {
-  // ...
-  fr: {
-    title: 'Gestionnaire de Thèmes CSS',
-    // ... outras traduções
-  }
-}
-```
-
----
-
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Sinta-se à vontade para:
-
-1. 🐛 Reportar bugs
-2. 💡 Sugerir features
-3. 🔧 Enviar pull requests
-
-### Desenvolvimento Local
-
-```bash
-# Fork o projeto
-# Clone seu fork
-git clone https://github.com/seu-usuario/ctm-studio.git
-
-# Crie uma branch
-git checkout -b feature/nova-feature
-
-# Faça suas alterações e commit
-git commit -m "feat: adiciona nova feature"
-
-# Push e abra um PR
-git push origin feature/nova-feature
-```
-
----
-
-## 📝 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
----
-
-## 👨‍💻 Autor
-
-**Alex Bianchi**
-
-- GitHub: [@Alexbbianchi](https://github.com/Alexbbianchi)
-- LinkedIn: [Alex Bianchi](https://linkedin.com/in/alex-bianchi)
-
----
-
-## 🙏 Agradecimentos
-
-- [shadcn/ui](https://ui.shadcn.com/) pela biblioteca de componentes
-- [Radix UI](https://www.radix-ui.com/) pelos primitivos acessíveis
-- [Vercel](https://vercel.com) pelo hosting e ferramentas
-
----
-
-<div align="center">
-
-**Feito com ❤️ e Next.js**
-
-⭐ Se este projeto foi útil, considere dar uma estrela!
-
-</div>
-
----
-
-# English
-
-## 🎯 About
+## English
 
 **CTM Studio** is a modern web application for managing CSS themes visually and intuitively. Perfect for designers, developers, and teams working with design systems who need to organize, search, and maintain consistency in CSS variables.
 
-## ✨ Key Features
+### Key Features
 
-- 🔍 **Instant Search**: Find any CSS variable across all themes
-- 🔗 **Smart Resolution**: Track `var()` references and detect circular dependencies
-- 🌐 **Multilingual**: Support for Portuguese, English, and Spanish
-- 🌓 **Dark/Light Mode**: Perfect theme switching
-- 📦 **Import/Export**: Import themes via JSON or pure CSS
-- 💾 **LocalStorage**: Automatic persistence without backend
+- Instant search: Find any CSS variable across all themes
+- Smart resolution: Track var() references and detect circular dependencies
+- Multilingual: Support for Portuguese, English, and Spanish
+- Dark/Light mode: Perfect theme switching
+- Import/Export: Import themes via JSON or pure CSS
+- LocalStorage: Automatic persistence without backend
 
-## 🚀 Quick Start
+### Quick Start
 
 ```bash
 git clone https://github.com/Alexbbianchi/ctm-studio.git
@@ -586,22 +574,20 @@ Access: `http://localhost:3000`
 
 ---
 
-# Español
-
-## 🎯 Acerca de
+## Español
 
 **CTM Studio** es una aplicación web moderna para gestionar temas CSS de forma visual e intuitiva. Ideal para diseñadores, desarrolladores y equipos que trabajan con design systems y necesitan organizar, buscar y mantener consistencia en variables CSS.
 
-## ✨ Características Principales
+### Características Principales
 
-- 🔍 **Búsqueda Instantánea**: Encuentre cualquier variable CSS en todos los temas
-- 🔗 **Resolución Inteligente**: Rastree referencias `var()` y detecte dependencias circulares
-- 🌐 **Multilingüe**: Soporte para Portugués, Inglés y Español
-- 🌓 **Dark/Light Mode**: Alternancia perfecta entre temas
-- 📦 **Import/Export**: Importe temas vía JSON o CSS puro
-- 💾 **LocalStorage**: Persistencia automática sin backend
+- Búsqueda instantánea: Encuentre cualquier variable CSS en todos los temas
+- Resolución inteligente: Rastree referencias var() y detecte dependencias circulares
+- Multilingüe: Soporte para Portugués, Inglés y Español
+- Dark/Light mode: Alternancia perfecta entre temas
+- Import/Export: Importe temas vía JSON o CSS puro
+- LocalStorage: Persistencia automática sin backend
 
-## 🚀 Inicio Rápido
+### Inicio Rápido
 
 ```bash
 git clone https://github.com/Alexbbianchi/ctm-studio.git
@@ -614,10 +600,4 @@ Acceder: `http://localhost:3000`
 
 ---
 
-<div align="center">
-
-### 📞 Contato / Contact / Contacto
-
 Para dúvidas ou sugestões, abra uma [issue](https://github.com/Alexbbianchi/ctm-studio/issues)
-
-</div>
