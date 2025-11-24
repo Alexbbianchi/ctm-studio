@@ -100,7 +100,7 @@ export function hslToRgb(h: number, s: number, l: number): { r: number; g: numbe
 
 // Detecta o formato da cor e retorna todas as conversões possíveis
 export function getColorConversions(color: string): ColorValue[] | null {
-  const trimmed = color.trim()
+  const trimmed = color.trim().toUpperCase()
 
   // HEX
   if (/^#([a-f\d]{3}|[a-f\d]{6})$/i.test(trimmed)) {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -91,16 +91,62 @@ export default function Home() {
     setIsModalOpen(true)
   }
 
-  const resolveVariable = (
+  // Cache de resolução de variáveis para evitar recálculos
+  const resolutionCache = useRef<Map<string, string[]>>(new Map())
+
+  // Limpa cache quando temas mudam
+  useEffect(() => {
+    resolutionCache.current.clear()
+  }, [temas])
+
+  // Cria índice de busca otimizado (apenas quando temas mudam)
+  const variableIndex = useMemo(() => {
+    const index = new Map<string, Array<{ tema: string; variable: string }>>()
+    
+    temas.forEach((tema) => {
+      Object.keys(tema.variaveis).forEach((varName) => {
+        const cleanVar = varName.toLowerCase()
+        
+        // Indexa por partes da variável para busca parcial rápida
+        const parts = cleanVar.replace(/^--/, '').split('-')
+        parts.forEach((part) => {
+          if (!index.has(part)) {
+            index.set(part, [])
+          }
+          index.get(part)!.push({ tema: tema.nome, variable: varName })
+        })
+        
+        // Indexa variável completa para busca exata
+        if (!index.has(cleanVar)) {
+          index.set(cleanVar, [])
+        }
+        index.get(cleanVar)!.push({ tema: tema.nome, variable: varName })
+      })
+    })
+    
+    return index
+  }, [temas])
+
+  // Mapa de temas para acesso O(1)
+  const themeMap = useMemo(() => {
+    return new Map(temas.map(t => [t.nome, t]))
+  }, [temas])
+
+  const resolveVariable = useCallback((
     value: string,
-    allThemes: Theme[],
     themeName: string,
     visited = new Set<string>(),
   ): string[] => {
+    // Verifica cache
+    const cacheKey = `${themeName}:${value}:${Array.from(visited).join(',')}`
+    const cached = resolutionCache.current.get(cacheKey)
+    if (cached) return cached
+
     const chain: string[] = [value]
 
     const varMatch = value.match(/var\((--.+?)\)/)
     if (!varMatch) {
+      resolutionCache.current.set(cacheKey, chain)
       return chain
     }
 
@@ -108,14 +154,16 @@ export default function Home() {
 
     if (visited.has(referencedVar)) {
       chain.push(`[Referência circular: ${referencedVar}]`)
+      resolutionCache.current.set(cacheKey, chain)
       return chain
     }
 
     visited.add(referencedVar)
 
-    const currentTheme = allThemes.find((t) => t.nome === themeName)
+    const currentTheme = themeMap.get(themeName)
     if (!currentTheme) {
       chain.push(`[Tema não encontrado: ${themeName}]`)
+      resolutionCache.current.set(cacheKey, chain)
       return chain
     }
 
@@ -125,23 +173,28 @@ export default function Home() {
         const valores = referencedValue.split(" | ")
         const allResolved: string[] = []
         valores.forEach((v, index) => {
-          const resolvedChain = resolveVariable(v, allThemes, themeName, new Set(visited))
+          const resolvedChain = resolveVariable(v, themeName, new Set(visited))
           allResolved.push(...resolvedChain)
           if (index < valores.length - 1) {
             allResolved.push("---SEPARATOR---")
           }
         })
-        return [...chain, ...allResolved]
+        const result = [...chain, ...allResolved]
+        resolutionCache.current.set(cacheKey, result)
+        return result
       } else {
-        const resolvedChain = resolveVariable(referencedValue, allThemes, themeName, visited)
-        return [...chain, ...resolvedChain]
+        const resolvedChain = resolveVariable(referencedValue, themeName, visited)
+        const result = [...chain, ...resolvedChain]
+        resolutionCache.current.set(cacheKey, result)
+        return result
       }
     } else {
       chain.push(`[Variável não encontrada: ${referencedVar}]`)
     }
 
+    resolutionCache.current.set(cacheKey, chain)
     return chain
-  }
+  }, [themeMap])
 
   const searchResults = useMemo(() => {
     if (!debouncedSearch.trim()) return null
@@ -171,64 +224,125 @@ export default function Home() {
       isDuplicate: boolean
     }> = []
 
-    temas.forEach((tema) => {
-      let matchingVars: string[] = []
+    if (isPartialSearch) {
+      // Busca parcial otimizada usando o índice
+      const matchedVars = new Map<string, Set<string>>()
       
-      if (isPartialSearch) {
-        // Busca parcial: todas as variáveis que contenham o termo
-        matchingVars = Object.keys(tema.variaveis).filter((varName) => {
-          const cleanVarName = varName.startsWith("--") ? varName.slice(2) : varName
-          return cleanVarName.toLowerCase().includes(searchTerm)
+      // Busca no índice
+      temas.forEach((tema) => {
+        const themeMatches = new Set<string>()
+        Object.keys(tema.variaveis).forEach((varName) => {
+          const cleanVarName = varName.toLowerCase().replace(/^--/, '')
+          if (cleanVarName.includes(searchTerm)) {
+            themeMatches.add(varName)
+          }
+        })
+        
+        if (themeMatches.size > 0) {
+          matchedVars.set(tema.nome, themeMatches)
+        }
+      })
+
+      // Se nenhuma variável foi encontrada, adiciona linha de "não encontrado" para cada tema
+      if (matchedVars.size === 0) {
+        temas.forEach((tema) => {
+          results.push({
+            tema: tema.nome,
+            variavel: `*${searchTerm}`,
+            valor: "—",
+            chain: null,
+            isDuplicate: false,
+          })
         })
       } else {
-        // Busca exata: apenas a variável específica
-        if (tema.variaveis[exactVariable]) {
-          matchingVars = [exactVariable]
-        }
-      }
+        // Processa variáveis encontradas
+        matchedVars.forEach((variables, themeName) => {
+          const tema = themeMap.get(themeName)!
+          
+          variables.forEach((variable) => {
+            const valor = tema.variaveis[variable]
 
-      if (matchingVars.length === 0) {
-        results.push({
-          tema: tema.nome,
-          variavel: isPartialSearch ? `*${searchTerm}` : exactVariable,
-          valor: "—",
-          chain: null,
-          isDuplicate: false,
+            if (valor.includes(" | ")) {
+              const valores = valor.split(" | ")
+              valores.forEach((v, index) => {
+                const chain = resolveVariable(v, themeName)
+                results.push({
+                  tema: `${themeName} (${index + 1})`,
+                  variavel: variable,
+                  valor: v,
+                  chain,
+                  isDuplicate: true,
+                })
+              })
+            } else {
+              const chain = resolveVariable(valor, themeName)
+              results.push({
+                tema: themeName,
+                variavel: variable,
+                valor,
+                chain,
+                isDuplicate: false,
+              })
+            }
+          })
         })
-        return
+        
+        // Adiciona temas que não têm a variável
+        temas.forEach((tema) => {
+          if (!matchedVars.has(tema.nome)) {
+            results.push({
+              tema: tema.nome,
+              variavel: `*${searchTerm}`,
+              valor: "—",
+              chain: null,
+              isDuplicate: false,
+            })
+          }
+        })
       }
-
-      // Para cada variável que corresponde à busca
-      matchingVars.forEach((variable) => {
-        const valor = tema.variaveis[variable]
+    } else {
+      // Busca exata - mais simples e rápida
+      temas.forEach((tema) => {
+        const valor = tema.variaveis[exactVariable]
+        
+        if (!valor) {
+          results.push({
+            tema: tema.nome,
+            variavel: exactVariable,
+            valor: "—",
+            chain: null,
+            isDuplicate: false,
+          })
+          return
+        }
 
         if (valor.includes(" | ")) {
           const valores = valor.split(" | ")
           valores.forEach((v, index) => {
-            const chain = resolveVariable(v, temas, tema.nome)
+            const chain = resolveVariable(v, tema.nome)
             results.push({
               tema: `${tema.nome} (${index + 1})`,
-              variavel: variable,
+              variavel: exactVariable,
               valor: v,
               chain,
               isDuplicate: true,
             })
           })
         } else {
-          const chain = resolveVariable(valor, temas, tema.nome)
+          const chain = resolveVariable(valor, tema.nome)
           results.push({
             tema: tema.nome,
-            variavel: variable,
+            variavel: exactVariable,
             valor,
             chain,
             isDuplicate: false,
           })
         }
       })
-    })
+    }
 
     return { searchTerm: isPartialSearch ? searchTerm : exactVariable, results, isPartialSearch }
-  }, [debouncedSearch, temas])
+  }, [debouncedSearch, temas, themeMap, resolveVariable, variableIndex])
 
   return (
     <div className="min-h-screen bg-background">
